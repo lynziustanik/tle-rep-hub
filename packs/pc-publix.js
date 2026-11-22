@@ -1,0 +1,86 @@
+/* Rule pack: Product Connections food demos at Publix (pilot: program 3460042, Sargento Cheese Bakes).
+   Built from TLE's own confirmation email for PC Publix events ("Event Details - 3460043 ... Sargento",
+   EVENT DAY STEPS + REPORTING FLOW) and the IsDemos job's picture requirements (table without you, table with you,
+   shoppers sampling x3, the completed PromoReport form). Nothing here is new policy: if the email changes, change this.
+   The shift (store, date, time, product, PRC code) comes from the rep's own link, so one pack serves every store.
+   Photo sets marked isdemos:'...' are the ones the IsDemos robot files into the job's required picture sets. */
+window.HUB_PACK_BUILD=function(sh){
+  var product=sh.product||'the product in your training manual';
+  var survey='https://esmyhome.promoworks.com/Portal/IVRScript/Details';
+  return {
+  key:'pc-publix',
+  title:product,
+  store:'Publix #'+sh.storeNum+(sh.city?' · '+sh.city:''),
+  details:[
+    ['When',sh.dateLabel+', '+sh.timeLabel],
+    ['Store','Publix #'+sh.storeNum+(sh.address?', '+sh.address:'')+(sh.city?', '+sh.city:'')+(sh.state?' '+sh.state:'')],
+    ['You are here for','Product Connections'],
+    ['Project # · Store # · PRC',[sh.program,sh.storeNum,sh.prc||'see your report form'].join(' · ')]],
+  lists:[
+    ['Wear',['Black or white collared shirt','Black pants (no yoga pants)','Dark closed-toe shoes','Hair neat, long hair tied back']],
+    ['Bring',['Your demo kit and card, or the funds TLE sent you','Your printed store page of the Client Report Form','Your phone, charged, with location turned on']],
+    ['Location',['Turn on Location Services for your browser and camera, and tap Allow when this page asks.']]],
+  photoLocation:true,
+  phone:sh.coordPhone||'',
+  products:[{id:'p1',name:product}],
+  photos:{
+    tableNo:{n:1,title:'Table without you',noun:'table',isdemos:'Table display without brand ambassador',
+      yes:['The whole table display, set up as the training manual shows','The product clearly visible'],shots:['The table display, without you in it']},
+    tableYou:{n:1,title:'Table with you',noun:'table with you',isdemos:'Table display with brand ambassador',
+      yes:['You standing beside the table','The whole table in the photo'],tip:'Ask an associate to take it.',shots:['You standing beside your table']},
+    shoppers:{n:3,more:true,title:'Shoppers sampling',noun:'shopper',isdemos:'Shoppers getting samples',
+      yes:['A shopper with a sample in hand','A different shopper in each photo'],tip:'Ask before you take it. Three is the minimum; more is better.'},
+    shelf:{n:1,title:'Product on the shelf',noun:'shelf',yes:['The product on the store shelf, or the empty spot where it should be']},
+    receipt:{n:1,title:'Receipt',noun:'receipt',yes:['Store name, date, every item and the total'],tip:'Lay it flat. You must keep every receipt to be paid.'},
+    form:{n:1,title:'Signed report form',noun:'report form',isdemos:'Completed PromoReports form',
+      yes:['The whole Client Report Form page for your store','The manager\'s signature','Your survey confirmation number written on it'],tip:'Lay it flat in good light.'},
+    outside:{n:1,title:'Outside the store',noun:'outside',yes:['The Publix sign behind you, or the store front']}},
+  flow:['checkin','manager','buy','setup','during','wrap','survey'],
+  blockedFlow:['checkin','blocked','survey'],
+  steps:{
+    checkin:{when:'On arrival',title:'Check in',info:'Check in the moment you get to the store. It records your arrival time and location, and TLE sees it right away.',
+      help:[['I am running late','Check in the moment you arrive and text your TLE coordinator.'],
+            ['My location did not come through','Turn on Location Services for your browser, then tap Allow when this page asks.']],
+      parts:[{type:'checkin'},{type:'note',text:'Still open IsDemos and tap Start too, the way your confirmation email says. This page does not replace it yet.'}]},
+    manager:{when:'On arrival',title:'Meet the manager',info:'Introduce yourself to the store manager and confirm where to set up.',
+      help:[['The manager is not expecting me','Say you are with Product Connections for a '+product+' demo, and show the store page of your report form. If they still say no, tap "I can\'t run this demo".']],
+      parts:[{type:'choice',k:'mgrOk',title:'Did the manager confirm your setup spot?',todo:'Answer: did the manager confirm your spot?',
+              script:{summary:'What to say to the manager',text:'"Hi, I\'m with Product Connections. I\'m here to sample '+product+' today. Where would you like me to set up?"'},
+              options:['Yes, I know where to set up']},
+             {type:'blockLink',label:'I can\'t run this demo: no product, or the manager said no'}]},
+    buy:{when:'Before you start',title:'Buy the product',info:'Buy only the approved products in your training manual. Start with 1 of each flavor unless the manual says otherwise. Keep every receipt.',
+      help:[['The product is out of stock','Do not leave the store. Text your TLE coordinator now, then tap "I can\'t run this demo" on step 2 if they tell you to.'],
+            ['My card does not work','Text your TLE coordinator. Do not pay with your own money unless they say so.']],
+      parts:[{type:'ticks',id:'buy',title:'Before you set up',items:[['bApproved','I bought only approved products from the training manual'],['bReceipt','I have the receipt']]},
+             {type:'photos',id:'shelf'}]},
+    setup:{when:'Before you start',title:'Set up your table',info:'Set up neatly, as the training manual shows. Then take the two table photos.',
+      help:[['I do not have a table or supplies','Text your TLE coordinator before you start.']],
+      parts:[{type:'ticks',id:'setup',title:'Table check',items:[['sNeat','Table set up as the training manual shows'],['sProduct','Product is on the table and easy to see']]},
+             {type:'photos',id:'tableNo'},{type:'photos',id:'tableYou'}]},
+    during:{when:'During the demo',title:'Sample and photograph',info:'Engage shoppers, offer samples and share the talking points from the training manual. Count every sample you hand out and photograph at least three different shoppers.',
+      help:[['A shopper does not want a photo','That is fine. Thank them and ask the next one.'],
+            ['The store is slow','Keep going to the end of your shift and keep counting.']],
+      parts:[{type:'note',text:'Tap + for every sample you hand out. IsDemos needs the total.'},{type:'tally',title:'Samples handed out'},{type:'photos',id:'shoppers'}]},
+    wrap:{when:'Last 15-20 minutes',title:'Wrap up',info:'Break down and clean your area, leave leftover product with the store manager, and have the manager sign your report form.',
+      help:[['The manager will not sign','Ask the manager on duty or a department lead. If nobody will, text your TLE coordinator before you leave.'],
+            ['I lost the receipt','Ask customer service to reprint it.']],
+      parts:[{type:'ticks',id:'wrap',title:'Before you leave',items:[['wClean','Area broken down and cleaned, trash thrown out'],['wLeft','Leftover product left with the store manager'],['wSigned','The manager signed my report form']]},
+             {type:'photos',id:'receipt'}]},
+    survey:{when:'Before you leave',title:'Client survey and form',info:'Do the client\'s online survey first, write the confirmation number on your report form, then photograph the signed form.',
+      help:[['How do I fill in the survey?','Select "Execution". No decimals (899 for $8.99). No zeroes (enter 1 instead). Use the project, store and PRC numbers at the top of this page.'],
+            ['There was no product','In the survey select "Enter 3 for No, No product at store upon arrival".'],
+            ['The survey shows an error','Type ERROR and what the error said in the box below.']],
+      parts:[{type:'lines',title:'Client survey',md:'* [Open the client survey]('+survey+')\n* Project **'+sh.program+'** · Store **'+sh.storeNum+'** · PRC **'+(sh.prc||'see your report form')+'**\n* Write the confirmation number on your report form'},
+             {type:'text',k:'confNum',label:'Survey confirmation number',placeholder:'Confirmation # (or ERROR and what it said)',todo:'Enter the survey confirmation number'},
+             {type:'photos',id:'form'}]},
+    blocked:{when:'Demo could not run',title:'Show what happened',info:'You still report, and you are still paid when there was no product or the manager said no. Text your TLE coordinator now, before you leave the store.',
+      help:[['I am not allowed to take photos inside','Take the outside photo, write what the manager said, and text your TLE coordinator.']],
+      parts:[{type:'alert',text:'Text your TLE coordinator now, before you leave the store.'},
+             {type:'choice',k:'why',title:'What stopped the demo?',options:['Product not in stock','Manager said no','Something else'],note:{k:'whyNote',placeholder:'What happened, and who you spoke to'}},
+             {type:'photos',id:'outside'},{type:'photos',id:'shelf'},{type:'unblockLink'}]}
+  },
+  send:{info:'Send before you walk out of the store. Your photos already went to TLE as you took them; this sends your answers and marks the demo done.',
+    help:[['Something is still missing','Go back to the list. A step without a check still has something left.'],
+          ['I have no signal','Tap send anyway. This page keeps everything and sends it as soon as you have signal. Do not clear your browser.']]}
+  };
+};

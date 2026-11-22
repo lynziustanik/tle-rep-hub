@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>TLE Rep Hub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="../hub/hub.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="logo"><img src="../hub/logo.png" alt="the Lynne experience"></div>
+  <p class="proto" id="loadMsg" role="status">Loading your shift…</p>
+</div>
+<script src="../config.js"></script>
+<script>
+/* One rep, one shift: the link is r/?s=<code>. The code is random and only opens its own shift.
+   The shift's details come from TLE's receiver (Google script); the last copy stays on this phone,
+   so the page still opens in a store with no signal. */
+(function(){
+  var API=window.HUB_API||'';
+  var code=(new URLSearchParams(location.search).get('s')||'').replace(/[^A-Za-z0-9]/g,'');
+  var CK='tleRepHubShift:'+code;
+  function say(t){var m=document.getElementById('loadMsg');if(m)m.textContent=t}
+  function load(src){return new Promise(function(ok,no){var s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.body.appendChild(s)})}
+  function start(d){
+    var sh=d.shift;sh.code=code;
+    load('../packs/'+encodeURIComponent(d.pack)+'.js').then(function(){
+      window.HUB_SHIFT=sh;window.HUB_PACK=window.HUB_PACK_BUILD(sh);
+      document.title=window.HUB_PACK.title+' · '+(sh.dateLabel||'');
+      document.body.innerHTML='';return load('../hub/hub.js');
+    }).catch(function(){say('This page could not load. Check your signal and open the link again.')});
+  }
+  function saved(){try{return JSON.parse(localStorage.getItem(CK)||'null')}catch(e){return null}}
+  if(!code){say('This link is missing its shift code. Open the link TLE sent you again.');return}
+  if(!API){say('This page is not set up yet.');return}
+  fetch(API+'?a=shift&s='+encodeURIComponent(code)).then(function(r){return r.json()}).then(function(d){
+    if(d&&d.ok&&d.shift){try{localStorage.setItem(CK,JSON.stringify(d))}catch(e){}start(d);return}
+    var c=saved();if(c&&!(d&&d.gone)){start(c);return}
+    say((d&&d.message)||'This link is not valid. Open the link TLE sent you again, or text your TLE coordinator.');
+  }).catch(function(){
+    var c=saved();if(c){start(c);return}
+    say('Your shift could not load. Check your signal and try again.');
+  });
+})();
+</script>
+</body>
+</html>
